@@ -1,13 +1,30 @@
-document.querySelector("#btn-start").onclick = () => console.log('test');
 
 const guiHandler = (function () {
     let tilesData = [];
+    let players = [];
+
     const tilesImages = document.querySelectorAll(".tile");
+    const winnerText = document.querySelector(".winner-text");
 
     function populateTilesData(arr){
        tilesData = arr;
     }
-
+    function populatePlayers(arr){
+        players = arr;
+    }
+    function winnerTextOn(name, status){
+        if (status == 'win'){
+            winnerText.textContent = `${name} wins!`;
+        }else {
+            winnerText.textContent = "It's a draw!";
+        }
+    }
+    function winnerTextOff(){
+        winnerText.textContent = '';
+    }
+    function playOn(){
+        winnerText.textContent = 'Make your move';
+    }
     function updateDisplay(){
         for (let i=0; i<9; i++){
             tilesImages[i].textContent = tilesData[i].getCurrentMarker();
@@ -18,7 +35,7 @@ const guiHandler = (function () {
         }
     }
 
-    return {populateTilesData, updateDisplay}
+    return {playOn, populatePlayers, populateTilesData, updateDisplay, winnerTextOn, winnerTextOff}
 })();
 
 const gameBoard = (function () {    
@@ -28,7 +45,6 @@ const gameBoard = (function () {
     }
     guiHandler.populateTilesData(tilesArray);
     
-
     function createTile () {
         let currentMarker = "_";
         const getCurrentMarker = () => currentMarker;
@@ -101,23 +117,45 @@ const gameEngine = (function () {
     const playersArray = [];
     let turn = 0;
     let turnsPlayed = 0;
-    let gameState = 'play';
-    playersArray.push(createPlayer('Joey', 'X'));
-    playersArray.push(createPlayer('Maitlyn', 'O'));
-
+    let gameState = 'over';
+    
     document.querySelector("#btn-reset").onclick = resetGame;
-    // reset game
-    function resetGame() {
+
+    document.querySelector("#btn-start").addEventListener("click", startGame);
+    function startGame(){
+        if (gameState == 'play'){
+            return;
+        }
+        guiHandler.playOn();
+        gameBoard.resetBoard();
+        gameState = 'play';
+        if (playersArray.length == 0){
+            let nameInputOne = document.querySelector("#player-one-name").value;
+            let nameInputTwo = document.querySelector('#player-two-name').value;
+            nameInputOne = nameInputOne == '' ? 'Player One' : nameInputOne;
+            nameInputTwo = nameInputTwo == '' ? 'Player Two' : nameInputTwo;
+
+            playersArray.push(createPlayer(nameInputOne, 'X'));
+            playersArray.push(createPlayer(nameInputTwo, 'O'));
+        }
 
         turnsPlayed = 0;
         turn = 0;
+    }
+    // reset game
+    function resetGame() {
+        guiHandler.winnerTextOff();
+        turnsPlayed = 0;
+        turn = 0;
         gameBoard.resetBoard();
-        gamestate = 'play';
+        gamestate = 'over';
+        playersArray.length = 0;
+        document.querySelector('#player-one-name').value = '';
+        document.querySelector('#player-two-name').value = '';
     }
 
     function boardClick(e) {
         let index = parseInt(e.target.id.split('-')[1]);
-        console.log(index);
         makeMove(index);      
     }
 
@@ -143,20 +181,17 @@ const gameEngine = (function () {
 
         let result = gameBoard.checkForWin();
         if(result != null){
-            winner(currentPlayer);
+            guiHandler.winnerTextOn(currentPlayer.name, 'win');
             gameState = 'over';
         }
 
         if(turnsPlayed == 9){
-            console.log("It's a tie!");
+            guiHandler.winnerTextOn('nobody', 'draw');
             gameState = 'over';
         }
 
     }
 
-    function winner(player){
-        console.log(`${player.name} is the winner!`)
-    }
     return {playersArray, resetGame, makeMove}
 })();
 
