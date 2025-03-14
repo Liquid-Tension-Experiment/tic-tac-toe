@@ -1,11 +1,34 @@
 document.querySelector("#btn-start").onclick = () => console.log('test');
 
-const gameBoard = (function () {
+
+const guiHandler = (function () {
+    let tilesData = [];
+    const tilesImages = document.querySelectorAll(".tile");
+
+    function populateTilesData(arr){
+       tilesData = arr;
+    }
+
+    function updateDisplay(){
+        for (let i=0; i<9; i++){
+            tilesImages[i].textContent = tilesData[i].getCurrentMarker();
+
+            if(tilesImages[i].textContent == '_'){
+                tilesImages[i].textContent = ' ';
+            } 
+        }
+    }
+
+    return {populateTilesData, updateDisplay}
+})();
+
+const gameBoard = (function () {    
     const tilesArray = [];
     for (let i=0; i<9; i++){
         tilesArray.push(createTile());
     }
-
+    guiHandler.populateTilesData(tilesArray);
+    
 
     function createTile () {
         let currentMarker = "_";
@@ -23,6 +46,7 @@ const gameBoard = (function () {
         for (const tile of tilesArray){
             tile.setCurrentMarker('_');
         }
+        guiHandler.updateDisplay();
     }
 
     const printBoard = () => {
@@ -35,6 +59,7 @@ const gameBoard = (function () {
             console.log(temp);
         }
     }
+
     const getTile = (pos) => tilesArray[pos];
 
     const checkForWin = function () {
@@ -68,11 +93,11 @@ const gameBoard = (function () {
             return tilesArray[2].getCurrentMarker();
         }
     }
-
-    return {getTile, checkForWin, resetBoard, isValidMove, printBoard}
+    return { getTile, checkForWin, resetBoard, isValidMove, printBoard}
 })();
 
 const gameEngine = (function () {
+    document.querySelector(".board").addEventListener("click", boardClick);
     // create players
     const playersArray = [];
     let turn = 0;
@@ -90,7 +115,16 @@ const gameEngine = (function () {
         gamestate = 'play';
     }
 
+    function boardClick(e) {
+        let index = parseInt(e.target.id.split('-')[1]);
+        console.log(index);
+        makeMove(index);      
+    }
+
     function makeMove(pos){
+        if (gameState != 'play'){
+            return;
+        }
         if(!gameBoard.isValidMove(pos)){
             console.log('Invalid move');
             return;
@@ -102,12 +136,12 @@ const gameEngine = (function () {
             currentPlayer = playersArray[1];
         }
         turn = (turn + 1)%2;
+        turnsPlayed++;
 
         gameBoard.getTile(pos).setCurrentMarker(currentPlayer.getPiece());
-        turnsPlayed++;
-        let result = gameBoard.checkForWin();
-        gameBoard.printBoard();
+        guiHandler.updateDisplay();
 
+        let result = gameBoard.checkForWin();
         if(result != null){
             winner(currentPlayer);
             gameState = 'over';
@@ -119,6 +153,7 @@ const gameEngine = (function () {
         }
 
     }
+    
     function winner(player){
         console.log(`${player.name} is the winner!`)
     }
