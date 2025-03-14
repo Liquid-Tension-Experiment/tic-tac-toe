@@ -1,6 +1,5 @@
 document.querySelector("#btn-start").onclick = () => console.log('test');
 
-
 const guiHandler = (function () {
     let tilesData = [];
     const tilesImages = document.querySelectorAll(".tile");
@@ -106,9 +105,10 @@ const gameEngine = (function () {
     playersArray.push(createPlayer('Joey', 'X'));
     playersArray.push(createPlayer('Maitlyn', 'O'));
 
-    
+    document.querySelector("#btn-reset").onclick = resetGame;
     // reset game
-    const resetGame = function () {
+    function resetGame() {
+
         turnsPlayed = 0;
         turn = 0;
         gameBoard.resetBoard();
@@ -153,7 +153,7 @@ const gameEngine = (function () {
         }
 
     }
-    
+
     function winner(player){
         console.log(`${player.name} is the winner!`)
     }
@@ -162,7 +162,6 @@ const gameEngine = (function () {
 
 function createPlayer(name = "", piece) {
     let score = 0;
-
     const getPiece = () => piece;
     const incrementScore = () => score++;
     const getScore = () => score;
